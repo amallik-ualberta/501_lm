@@ -15,7 +15,9 @@ def ngram_prob(token_list, dist, dist_minus1):
 
     list_length = len(token_list)
 
-    sliced_list = token_list[0:list_length]
+    sliced_list = token_list[0:list_length-1]
+
+    
 
     if(dist_minus1.freq(tuple(sliced_list)) == 0):
 
@@ -39,6 +41,10 @@ def docprob(token, n, dist, dist_minus1):
 
             token_list.append(token[a])
 
+
+        print(token_list)
+
+        print("\n")
         ngram_prob(token_list, dist, dist_minus1)
 
 
@@ -50,8 +56,8 @@ def main():
 
     dev_path = sys.argv[2]
 
-    for filename in glob.glob(os.path.join(train_path, "*.tra")):
-        f = open (filename, "r")
+    for train_filename in glob.glob(os.path.join(train_path, "*.tra")):
+        f = open (train_filename, "r")
         contents = f.read()
 
         token = nltk.word_tokenize(contents)
@@ -72,15 +78,17 @@ def main():
 
             
 
-            for filename in glob.glob(os.path.join(dev_path, "*.dev")):
-                f = open (filename, "r")
+            for dev_filename in glob.glob(os.path.join(dev_path, "*.dev")):
+                f = open (dev_filename, "r")
                 contents = f.read()
-
+                
                 token = nltk.word_tokenize(contents)
 
-                break;
+                break
 
             docprob(token, n, dist, dist_minus1)
+
+
        
 
 
