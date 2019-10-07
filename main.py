@@ -19,7 +19,7 @@ def ngram_prob(token_list, dist, dist_minus1):
 
     
 
-    if(dist_minus1.freq(tuple(sliced_list)) == 0):
+    if(dist.freq(tuple(token_list))== 0 or dist_minus1.freq(tuple(sliced_list)) == 0 ):
 
         return 0
 
