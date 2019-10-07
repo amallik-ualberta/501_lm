@@ -58,6 +58,8 @@ def main():
 
     for train_filename in glob.glob(os.path.join(train_path, "*.tra")):
         f = open (train_filename, "r")
+
+
         contents = f.read()
 
         token = nltk.word_tokenize(contents)
@@ -83,6 +85,8 @@ def main():
                 contents = f.read()
                 
                 token = nltk.word_tokenize(contents)
+
+
 
                 break
 
