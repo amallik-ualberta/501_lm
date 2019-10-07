@@ -4,12 +4,91 @@ import os
 
 import sys
 
-if len(sys.argv) == 1:
-    folder_path = input("Enter Folder Path of Training files: ")
-else:
-    folder_path = sys.argv[1]
+import nltk
 
-for filename in glob.glob(os.path.join(folder_path, "*.tra")):
-    f = open (filename, "r")
-    contents = f.read()
-    print(contents)
+from nltk import *
+
+import math
+
+
+def ngram_prob(token_list, dist, dist_minus1):
+
+    list_length = len(token_list)
+
+    sliced_list = token_list[0:list_length]
+
+    if(dist_minus1.freq(tuple(sliced_list)) == 0):
+
+        return 0
+
+    return math.log(dist.freq(tuple(token_list))/dist_minus1.freq(tuple(sliced_list)))
+
+    
+
+
+
+def docprob(token, n, dist, dist_minus1):
+
+    logprob = 0
+
+    for i in range(n-1, len(token)):
+
+        token_list = []
+
+        for a in range (i-n+1, i+1):
+
+            token_list.append(token[a])
+
+        ngram_prob(token_list, dist, dist_minus1)
+
+
+
+
+def main():
+
+    train_path = sys.argv[1]
+
+    dev_path = sys.argv[2]
+
+    for filename in glob.glob(os.path.join(train_path, "*.tra")):
+        f = open (filename, "r")
+        contents = f.read()
+
+        token = nltk.word_tokenize(contents)
+
+        for n in range (2,4):
+            
+            ngram = ngrams(token,n)
+
+            dist = nltk.FreqDist(ngram)
+
+            dist_minus1 = None
+
+            if (n>1):
+
+                n_minus1_gram = ngrams(token,n-1)
+
+                dist_minus1 = nltk.FreqDist(n_minus1_gram)
+
+            
+
+            for filename in glob.glob(os.path.join(dev_path, "*.dev")):
+                f = open (filename, "r")
+                contents = f.read()
+
+                token = nltk.word_tokenize(contents)
+
+                break;
+
+            docprob(token, n, dist, dist_minus1)
+       
+
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
