@@ -16,10 +16,19 @@ def ngram_prob(token_list, dist, dist_minus1):
     sliced_list = token_list[0:list_length - 1]
 
     if dist.freq(tuple(token_list)) == 0 or dist_minus1.freq(tuple(sliced_list)) == 0:
-        return 0
+        return -7
 
     return math.log2(dist.freq(tuple(token_list)) / dist_minus1.freq(tuple(sliced_list)))
 
+def docprob_unigram(token_dev, dist, length_token_train):
+    logprob = 0
+
+    for i in range(0, len(token_dev)):
+        if dist.freq(tuple(token_dev[i])) == 0:
+            logprob += -7
+        else:
+            logprob += math.log2(dist.freq(tuple(token_dev[i]))/length_token_train)
+    return logprob
 
 def docprob(token, n, dist, dist_minus1):
     logprob = 0
@@ -49,7 +58,7 @@ def main():
         # token_dev = nltk.word_tokenize(contents_dev)
         token_dev = list(contents_dev)
 
-        for n in range(2, 9):
+        for n in range(1, 4):
             for filename_train in glob.glob(os.path.join(path_train, "*.tra")):
                 f_train = open(filename_train, "r")
 
@@ -59,20 +68,19 @@ def main():
                 token_train = list(contents_train)
 
                 ngram = ngrams(token_train, n)
-
                 dist = nltk.FreqDist(ngram)
 
-                dist_minus1 = None
-
-                if n > 1:
+                if n == 1:
+                    logprob = docprob_unigram(token_dev, dist, len(token_train))
+                else:
                     n_minus1_gram = ngrams(token_train, n - 1)
 
                     dist_minus1 = nltk.FreqDist(n_minus1_gram)
+                    logprob = docprob(token_dev, n, dist, dist_minus1)
 
-                logprob = docprob(token_dev, n, dist, dist_minus1)
                 perplexity = 2 ** -(logprob / len(token_dev))
-                print("dev file: %s, train file: %s, value of n: %d, probability: %s, perplexity: %s" % (
-                    filename_dev, filename_train, n, logprob, perplexity))
+                print("dev file: %s, train file: %s, value of n: %d, perplexity: %s" % (
+                    filename_dev, filename_train, n, perplexity))
         break
 
 
