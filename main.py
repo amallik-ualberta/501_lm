@@ -20,6 +20,7 @@ def ngram_prob(token_list, dist, dist_minus1):
 
     return math.log2(dist.freq(tuple(token_list)) / dist_minus1.freq(tuple(sliced_list)))
 
+
 def docprob_unigram(token_dev, dist, length_token_train):
     logprob = 0
 
@@ -27,8 +28,9 @@ def docprob_unigram(token_dev, dist, length_token_train):
         if dist.freq(tuple(token_dev[i])) == 0:
             logprob += -7
         else:
-            logprob += math.log2(dist.freq(tuple(token_dev[i]))/length_token_train)
+            logprob += math.log2(dist.freq(tuple(token_dev[i])) / length_token_train)
     return logprob
+
 
 def docprob(token, n, dist, dist_minus1):
     logprob = 0
@@ -46,6 +48,13 @@ def docprob(token, n, dist, dist_minus1):
     return logprob
 
 
+class Output:
+    dev_filename = None
+    train_filename = None
+    n = 0
+    perplexity = sys.maxsize
+
+
 def main():
     path_train = sys.argv[1]
 
@@ -57,8 +66,8 @@ def main():
 
         # token_dev = nltk.word_tokenize(contents_dev)
         token_dev = list(contents_dev)
-
-        for n in range(1, 4):
+        output = Output()
+        for n in range(1, 9):
             for filename_train in glob.glob(os.path.join(path_train, "*.tra")):
                 f_train = open(filename_train, "r")
 
@@ -79,8 +88,15 @@ def main():
                     logprob = docprob(token_dev, n, dist, dist_minus1)
 
                 perplexity = 2 ** -(logprob / len(token_dev))
-                print("dev file: %s, train file: %s, value of n: %d, perplexity: %s" % (
-                    filename_dev, filename_train, n, perplexity))
+                # print("dev file: %s, train file: %s, value of n: %d, perplexity: %s" % (
+                #     filename_dev, filename_train, n, perplexity))
+                if perplexity < output.perplexity:
+                    output.dev_filename = filename_dev
+                    output.train_filename = filename_train
+                    output.n = n
+                    output.perplexity = perplexity
+        print("best result -> dev file: %s, train file: %s, value of n: %d, perplexity: %s" % (
+            output.dev_filename, output.train_filename, output.n, output.perplexity))
         break
 
 
