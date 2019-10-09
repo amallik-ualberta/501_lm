@@ -22,6 +22,8 @@ def ngram_prob(token_list, dist, dist_minus1):
 
 
 def docprob_unigram(token_dev, dist, length_token_train):
+
+    print (len(dist), length_token_train)
     logprob = 0
 
     for i in range(0, len(token_dev)):
