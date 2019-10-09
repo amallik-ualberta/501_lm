@@ -1,6 +1,6 @@
 import glob
 import os
-
+import argparse
 import sys
 
 import nltk
@@ -85,7 +85,7 @@ def docprob(token, n, dist, dist_minus1):
 
 # returns True if two filenames excluding extension are same
 # returns False if two filenames excluding extension are different
-def check_if_two_file_names_ignoring_extension_are_same(filename1, filename2):
+def compare_file_names_ignoring_extension(filename1, filename2):
     # gets the file name as "udhr-yao" from "811_a1_dev\udhr-yao.txt.dev" and "811_a1_train\udhr-yao.txt.tra"
     filename_prefix_pattern = r"\\(.*?)\..*"
 
@@ -95,10 +95,35 @@ def check_if_two_file_names_ignoring_extension_are_same(filename1, filename2):
     return len(file1_prefix) != 0 and len(file2_prefix) != 0 and file1_prefix[0] == file2_prefix[0]
 
 
-def main():
-    path_train = sys.argv[1]
+# usage: langid.py [-h] --train TRAIN_PATH --dev DEV_PATH [--unsmoothed] [--laplace] [--interpolation]
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train', dest="train_path", action="store", default="811_a1_train", required=True)
+    parser.add_argument('--dev', dest="dev_path", action="store", default="811_a1_dev", required=True)
+    parser.add_argument('--unsmoothed', action="store_true", default=False)
+    parser.add_argument('--laplace', action="store_true", default=False)
+    parser.add_argument('--interpolation', action="store_true", default=False)
 
-    path_dev = sys.argv[2]
+    args = parser.parse_args()
+    print(args)
+    return args
+
+
+def main():
+    args = parse_arguments()
+
+    path_train = args.train_path
+
+    path_dev = args.dev_path
+
+    # if args.unsmoothed:
+    #     # apply unsmoothing
+    #
+    # if args.laplace:
+    #     # apply laplace smoothing
+    #
+    # if args.interpolation:
+    #     # apply interpolation smoothing
 
     language_models = training_language_models(path_train)
 
@@ -134,7 +159,7 @@ def main():
                         best_guess_train_file = language_model.filename_train
 
             print(filename_dev, best_guess_train_file)
-            print(check_if_two_file_names_ignoring_extension_are_same(filename_dev, best_guess_train_file))
+            print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
 
 
 if __name__ == "__main__":
