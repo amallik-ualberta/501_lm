@@ -86,8 +86,9 @@ def docprob(token, n, dist, dist_minus1):
 # returns True if two filenames excluding extension are same
 # returns False if two filenames excluding extension are different
 def compare_file_names_ignoring_extension(filename1, filename2):
-    # gets the file name as "udhr-yao" from "811_a1_dev\udhr-yao.txt.dev" and "811_a1_train\udhr-yao.txt.tra"
-    filename_prefix_pattern = r"\\(.*?)\..*"
+    # gets the file name as "udhr-yao" from "811_a1_dev\udhr-yao.txt.dev" and "811_a1_train\udhr-yao.txt.tra" for windows
+    # gets the file name as "udhr-yao" from "811_a1_dev/udhr-yao.txt.dev" and "811_a1_train/udhr-yao.txt.tra" for unix
+    filename_prefix_pattern = r"[/\\](.*?)\..*"
 
     file1_prefix = re.findall(filename_prefix_pattern, filename1)
     file2_prefix = re.findall(filename_prefix_pattern, filename2)
