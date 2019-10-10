@@ -165,16 +165,10 @@ def main():
 
             for language_model in language_models:
 
-                if language_model.n_value == n:
+                if language_model.n_value == 1:
 
-                    if n == 1:
-
-                        logprob = docprob_unigram(token_dev, language_model.dist, language_model.train_token)
-
-                    else:
-
-                        logprob = docprob(token_dev, n, language_model.dist, language_model.dist_minus1)
-
+                 
+                    logprob = docprob_unigram(token_dev, language_model.dist, language_model.train_token)
                     perplexity = 2 ** -(logprob / len(token_dev))
 
                     if perplexity < min_perplexity:
