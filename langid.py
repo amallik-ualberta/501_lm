@@ -14,13 +14,16 @@ import collections
 
 class Lang_Model:
 
-    def __init__(self, filename_train, n_value, dist, dist_minus1, train_token, vocabulary):
-        self.filename_train = filename_train
-        self.n_value = n_value
-        self.dist = dist
-        self.dist_minus1 = dist_minus1
+    def __init__(self, filename_train, n_value, ngram, n_minus1_gram, tokens_train, vocabulary):
 
-        self.train_token = train_token  # need this for unigram only
+        self.filename_train = filename_train
+
+        self.n_value = n_value
+
+        self.ngram = ngram
+        self.n_minus1_gram = n_minus1_gram
+
+        self.tokens_train = tokens_train  # need this for unigram only
 
         self.vocabulary = vocabulary  # used for Laplace smoothing
 
@@ -55,16 +58,19 @@ def training_language_models(path_train):
         for n in range(1, 10):
 
             ngram = ngrams(tokens_train, n)
-            dist = nltk.FreqDist(ngram)
+            
+            ngram = list(ngram)
 
             if (n == 1):
-                dist_minus1 = None
+                n_minus1_gram = None
 
             else:
                 n_minus1_gram = ngrams(tokens_train, n - 1)
-                dist_minus1 = nltk.FreqDist(n_minus1_gram)
 
-            temp_lang_model = Lang_Model(filename_train, n, dist, dist_minus1, tokens_train, vocabulary)
+                n_minus1_gram = list(n_minus1_gram)
+            
+
+            temp_lang_model = Lang_Model(filename_train, n, ngram, n_minus1_gram, tokens_train, vocabulary)
             language_models.append(temp_lang_model)
 
     return language_models
@@ -81,14 +87,16 @@ def ngram_prob(token_list, dist, dist_minus1):
     return math.log2(dist.freq(tuple(token_list)) / dist_minus1.freq(tuple(sliced_list)))
 
 
-def docprob_unigram(token_dev, dist, train_token):
+def docprob_unigram(tokens_dev, tokens_train):
     logprob = 0
 
-    for i in range(0, len(token_dev)):
-        if dist.freq(tuple(token_dev[i])) == 0:
-            token_dev[i] = "#"
+    for i in range(0, len(tokens_dev)):
 
-        logprob += math.log2(train_token.count(token_dev[i]) / len(train_token))
+        if tokens_train.count(tokens_dev[i]) == 0:
+
+            tokens_dev[i] = "#"
+
+        logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
     return logprob
 
 
@@ -128,7 +136,7 @@ def parse_arguments():
     parser.add_argument('--interpolation', action="store_true", default=False)
 
     args = parser.parse_args()
-    print(args)
+    
     return args
 
 
@@ -161,15 +169,15 @@ def main():
 
             f_dev = open(filename_dev, "r")
             contents_dev = f_dev.read()
-            token_dev = list(contents_dev)
+            tokens_dev = list(contents_dev)
 
             for language_model in language_models:
 
                 if language_model.n_value == 1:
 
                  
-                    logprob = docprob_unigram(token_dev, language_model.dist, language_model.train_token)
-                    perplexity = 2 ** -(logprob / len(token_dev))
+                    logprob = docprob_unigram(tokens_dev, language_model.tokens_train)
+                    perplexity = 2 ** -(logprob / len(tokens_dev))
 
                     if perplexity < min_perplexity:
                         min_perplexity = perplexity
@@ -178,6 +186,28 @@ def main():
 
             # print(filename_dev, best_guess_train_file)
             print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
+
+
+
+    """if args.laplace:
+
+    	for n in range (2,10):
+
+    		for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
+
+    			min_perplexity = sys.maxsize
+
+    			best_guess_train_file = None
+
+    			f_dev = open(filename_dev, "r")
+    			contents_dev = f_dev.read()
+    			tokens_dev = list(contents_dev)
+
+    			for language_model in language_models:
+
+    				if (language_models.n_value == n):
+
+    					logprob = do"""
 
 
 if __name__ == "__main__":
