@@ -76,15 +76,18 @@ def training_language_models(path_train):
     return language_models
 
 
-def ngram_prob(token_list, dist, dist_minus1):
+def ngram_prob(token_list, ngram, n_minus1_gram, vocabulary):
     list_length = len(token_list)
 
     sliced_list = token_list[0:list_length - 1]
 
-    if dist.freq(tuple(token_list)) == 0 or dist_minus1.freq(tuple(sliced_list)) == 0:
-        return -7
+    numerator = ngram.count(tuple(token_list)) + 1
 
-    return math.log2(dist.freq(tuple(token_list)) / dist_minus1.freq(tuple(sliced_list)))
+    denominator = n_minus1_gram.count(tuple(sliced_list)) + vocabulary
+
+    
+
+    return math.log2(numerator / denominator)
 
 
 def docprob_unigram(tokens_dev, tokens_train):
@@ -100,7 +103,7 @@ def docprob_unigram(tokens_dev, tokens_train):
     return logprob
 
 
-def docprob(token, n, dist, dist_minus1):
+def docprob(token, n, ngram, n_minus1_gram, vocabulary):
     logprob = 0
     for i in range(n - 1, len(token)):
 
@@ -109,7 +112,7 @@ def docprob(token, n, dist, dist_minus1):
         for a in range(i - n + 1, i + 1):
             token_list.append(token[a])
 
-        logprob += ngram_prob(token_list, dist, dist_minus1)
+        logprob += ngram_prob(token_list, ngram, n_minus1_gram, vocabulary)
     return logprob
 
 
@@ -138,6 +141,31 @@ def parse_arguments():
     args = parser.parse_args()
     
     return args
+
+
+def interpolation_algorithm(n, tokens_train):
+
+	ngram_list = []
+
+	lambda_list = []
+
+	for i in range(1, n+1):
+
+		ngram = ngrams(tokens_train, i)
+
+		ngram = list(ngram)
+
+		ngram_list.append(ngram)
+
+
+	my_ngram = ngram_list[n-1] 
+
+	for my_tuple in my_ngram:
+
+		print(my_tuple)
+		
+
+
 
 
 def main():
@@ -189,7 +217,7 @@ def main():
 
 
 
-    """if args.laplace:
+    if args.laplace:
 
     	for n in range (2,10):
 
@@ -205,9 +233,38 @@ def main():
 
     			for language_model in language_models:
 
-    				if (language_models.n_value == n):
+    				if (language_model.n_value == n):
 
-    					logprob = do"""
+    					logprob = docprob(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram, language_model.vocabulary)
+
+    					perplexity = 2 ** -(logprob / len(tokens_dev))
+
+    					if perplexity < min_perplexity:
+    						min_perplexity = perplexity
+    						best_guess_train_file = language_model.filename_train
+
+    			print(filename_dev, best_guess_train_file)
+
+    if args.interpolation:
+
+    	for n in range (2,3):
+
+    		for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
+
+    			min_perplexity = sys.maxsize
+
+    			best_guess_train_file = None
+
+    			f_dev = open(filename_dev, "r")
+    			contents_dev = f_dev.read()
+    			tokens_dev = list(contents_dev)
+
+    			for language_model in language_models:
+
+    				#lambda_list = interpolation_algorithm(n, language_model.tokens_train)
+
+    				print(n)
+
 
 
 if __name__ == "__main__":
