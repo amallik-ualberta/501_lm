@@ -22,7 +22,7 @@ class Lang_Model:
 
         self.train_token = train_token  # need this for unigram only
 
-        self.vocabulary = vocabulary #used for Laplace smoothing
+        self.vocabulary = vocabulary  # used for Laplace smoothing
 
 
 def training_language_models(path_train):
@@ -34,21 +34,19 @@ def training_language_models(path_train):
         contents_train = f_train.read()
         tokens_train = list(contents_train)
 
-        groups_to_replace = 2 #how many group of characters you want to replace with 'UNK'?
+        groups_to_replace = 2  # how many group of characters you want to replace with 'UNK'?
 
         counter = collections.Counter(tokens_train)
-        least_commons = counter.most_common()[:-groups_to_replace-1:-1]
+        least_commons = counter.most_common()[:-groups_to_replace - 1:-1]
 
         for least_common in least_commons:
 
-        	character = least_common[0]
+            character = least_common[0]
 
-        	for n, i in enumerate(tokens_train):
+            for n, i in enumerate(tokens_train):
 
-        		if (i == character):
-
-        			tokens_train[n] = "#"
-
+                if (i == character):
+                    tokens_train[n] = "#"
 
         unique_tokens = set(tokens_train)
 
@@ -89,7 +87,7 @@ def docprob_unigram(token_dev, dist, train_token):
     for i in range(0, len(token_dev)):
         if dist.freq(tuple(token_dev[i])) == 0:
             token_dev[i] = "#"
-      
+
         logprob += math.log2(train_token.count(token_dev[i]) / len(train_token))
     return logprob
 
@@ -152,7 +150,8 @@ def main():
 
     language_models = training_language_models(path_train)
 
-    for n in range(1, 2):
+    if args.unsmoothed:
+        n = 1
 
         for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
@@ -183,7 +182,7 @@ def main():
 
                         best_guess_train_file = language_model.filename_train
 
-            #print(filename_dev, best_guess_train_file)
+            # print(filename_dev, best_guess_train_file)
             print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
 
 
