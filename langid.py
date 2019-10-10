@@ -9,16 +9,20 @@ from nltk import *
 
 import math
 
+import collections
+
 
 class Lang_Model:
 
-    def __init__(self, filename_train, n_value, dist, dist_minus1, token_count):
+    def __init__(self, filename_train, n_value, dist, dist_minus1, train_token, vocabulary):
         self.filename_train = filename_train
         self.n_value = n_value
         self.dist = dist
         self.dist_minus1 = dist_minus1
 
-        self.token_count = token_count  # need this for unigram only
+        self.train_token = train_token  # need this for unigram only
+
+        self.vocabulary = vocabulary #used for Laplace smoothing
 
 
 def training_language_models(path_train):
@@ -29,6 +33,26 @@ def training_language_models(path_train):
         f_train = open(filename_train, "r")
         contents_train = f_train.read()
         tokens_train = list(contents_train)
+
+        groups_to_replace = 2 #how many group of characters you want to replace with 'UNK'?
+
+        counter = collections.Counter(tokens_train)
+        least_commons = counter.most_common()[:-groups_to_replace-1:-1]
+
+        for least_common in least_commons:
+
+        	character = least_common[0]
+
+        	for n, i in enumerate(tokens_train):
+
+        		if (i == character):
+
+        			tokens_train[n] = "#"
+
+
+        unique_tokens = set(tokens_train)
+
+        vocabulary = len(unique_tokens)
 
         for n in range(1, 10):
 
@@ -42,7 +66,7 @@ def training_language_models(path_train):
                 n_minus1_gram = ngrams(tokens_train, n - 1)
                 dist_minus1 = nltk.FreqDist(n_minus1_gram)
 
-            temp_lang_model = Lang_Model(filename_train, n, dist, dist_minus1, len(tokens_train))
+            temp_lang_model = Lang_Model(filename_train, n, dist, dist_minus1, tokens_train, vocabulary)
             language_models.append(temp_lang_model)
 
     return language_models
@@ -59,14 +83,14 @@ def ngram_prob(token_list, dist, dist_minus1):
     return math.log2(dist.freq(tuple(token_list)) / dist_minus1.freq(tuple(sliced_list)))
 
 
-def docprob_unigram(token_dev, dist, length_token_train):
+def docprob_unigram(token_dev, dist, train_token):
     logprob = 0
 
     for i in range(0, len(token_dev)):
         if dist.freq(tuple(token_dev[i])) == 0:
-            logprob += -7
-        else:
-            logprob += math.log2(dist.freq(tuple(token_dev[i])) / length_token_train)
+            token_dev[i] = "#"
+      
+        logprob += math.log2(train_token.count(token_dev[i]) / len(train_token))
     return logprob
 
 
@@ -128,7 +152,7 @@ def main():
 
     language_models = training_language_models(path_train)
 
-    for n in range(1, 10):
+    for n in range(1, 2):
 
         for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
@@ -146,7 +170,7 @@ def main():
 
                     if n == 1:
 
-                        logprob = docprob_unigram(token_dev, language_model.dist, language_model.token_count)
+                        logprob = docprob_unigram(token_dev, language_model.dist, language_model.train_token)
 
                     else:
 
@@ -159,7 +183,7 @@ def main():
 
                         best_guess_train_file = language_model.filename_train
 
-            print(filename_dev, best_guess_train_file)
+            #print(filename_dev, best_guess_train_file)
             print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
 
 
