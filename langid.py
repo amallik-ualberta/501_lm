@@ -15,7 +15,6 @@ import collections
 class Lang_Model:
 
     def __init__(self, filename_train, n_value, ngram, n_minus1_gram, tokens_train, vocabulary):
-
         self.filename_train = filename_train
 
         self.n_value = n_value
@@ -58,7 +57,7 @@ def training_language_models(path_train):
         for n in range(1, 10):
 
             ngram = ngrams(tokens_train, n)
-            
+
             ngram = list(ngram)
 
             if (n == 1):
@@ -68,7 +67,6 @@ def training_language_models(path_train):
                 n_minus1_gram = ngrams(tokens_train, n - 1)
 
                 n_minus1_gram = list(n_minus1_gram)
-            
 
             temp_lang_model = Lang_Model(filename_train, n, ngram, n_minus1_gram, tokens_train, vocabulary)
             language_models.append(temp_lang_model)
@@ -85,8 +83,6 @@ def ngram_prob(token_list, ngram, n_minus1_gram, vocabulary):
 
     denominator = n_minus1_gram.count(tuple(sliced_list)) + vocabulary
 
-    
-
     return math.log2(numerator / denominator)
 
 
@@ -96,7 +92,6 @@ def docprob_unigram(tokens_dev, tokens_train):
     for i in range(0, len(tokens_dev)):
 
         if tokens_train.count(tokens_dev[i]) == 0:
-
             tokens_dev[i] = "#"
 
         logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
@@ -129,6 +124,70 @@ def compare_file_names_ignoring_extension(filename1, filename2):
     return len(file1_prefix) != 0 and len(file2_prefix) != 0 and file1_prefix[0] == file2_prefix[0]
 
 
+def normalize_lambda_values(lambda_value_list):
+    sum_val = 0
+    for value in lambda_value_list:
+        sum_val += value
+
+    for i in range(1, len(lambda_value_list)):
+        lambda_value_list[i] = lambda_value_list[i] / sum_val
+
+    return lambda_value_list
+
+
+def interpolation_algorithm(n, tokens_train):
+    gram_list = [[]]  # setting first element to empty list so that we can put ith gram in index i
+
+    lambda_value_list = [0]  # setting first element 0 so that we can put value of ith lambda in index i
+
+    for i in range(1, n + 1):
+        igram = ngrams(tokens_train, i)
+        igram = list(igram)
+
+        gram_list.append(igram)
+        lambda_value_list.append(0)
+
+    ngram = gram_list[n]
+
+    for each_tuple in ngram:
+
+        max_count = - sys.maxsize - 1
+        max_count_index = 0
+
+        ngram_each_tuple_count = ngram.count(each_tuple)
+
+        if ngram_each_tuple_count > 0:
+
+            for i in range(1, n + 1):
+
+                if i == n:
+
+                    if len(gram_list[1]) - 1 == 0:
+                        count = 0
+                    else:
+                        count = (gram_list[1].count(tuple(each_tuple[n - 1])) - 1) / (len(gram_list[1]) - 1)
+
+                else:
+                    n_minus_i_plus_1_gram = gram_list[n - i + 1]
+                    n_minus_i_gram = gram_list[n - i]
+
+                    if n_minus_i_gram.count(each_tuple[0:n - i]) - 1 == 0:
+                        count = 0
+                    else:
+                        count = (n_minus_i_plus_1_gram.count(each_tuple[i - 1:n]) - 1) / (
+                                n_minus_i_gram.count(each_tuple[0:n - i]) - 1)
+
+                if count > max_count:
+                    max_count = count
+                    max_count_index = n - i + 1
+
+            lambda_value_list[max_count_index] += ngram_each_tuple_count
+
+    normalized_lambda_value_list = normalize_lambda_values(lambda_value_list)
+
+    return normalized_lambda_value_list
+
+
 # usage: langid.py [-h] --train TRAIN_PATH --dev DEV_PATH [--unsmoothed] [--laplace] [--interpolation]
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -139,33 +198,8 @@ def parse_arguments():
     parser.add_argument('--interpolation', action="store_true", default=False)
 
     args = parser.parse_args()
-    
+
     return args
-
-
-def interpolation_algorithm(n, tokens_train):
-
-	ngram_list = []
-
-	lambda_list = []
-
-	for i in range(1, n+1):
-
-		ngram = ngrams(tokens_train, i)
-
-		ngram = list(ngram)
-
-		ngram_list.append(ngram)
-
-
-	my_ngram = ngram_list[n-1] 
-
-	for my_tuple in my_ngram:
-
-		print(my_tuple)
-		
-
-
 
 
 def main():
@@ -175,19 +209,9 @@ def main():
 
     path_dev = args.dev_path
 
-    # if args.unsmoothed:
-    #     # apply unsmoothing
-    #
-    # if args.laplace:
-    #     # apply laplace smoothing
-    #
-    # if args.interpolation:
-    #     # apply interpolation smoothing
-
     language_models = training_language_models(path_train)
 
     if args.unsmoothed:
-        n = 1
 
         for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
@@ -203,7 +227,6 @@ def main():
 
                 if language_model.n_value == 1:
 
-                 
                     logprob = docprob_unigram(tokens_dev, language_model.tokens_train)
                     perplexity = 2 ** -(logprob / len(tokens_dev))
 
@@ -215,56 +238,57 @@ def main():
             # print(filename_dev, best_guess_train_file)
             print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
 
-
-
     if args.laplace:
 
-    	for n in range (2,10):
+        for n in range(2, 10):
 
-    		for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
+            for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
-    			min_perplexity = sys.maxsize
+                min_perplexity = sys.maxsize
 
-    			best_guess_train_file = None
+                best_guess_train_file = None
 
-    			f_dev = open(filename_dev, "r")
-    			contents_dev = f_dev.read()
-    			tokens_dev = list(contents_dev)
+                f_dev = open(filename_dev, "r")
+                contents_dev = f_dev.read()
+                tokens_dev = list(contents_dev)
 
-    			for language_model in language_models:
+                for language_model in language_models:
 
-    				if (language_model.n_value == n):
+                    if language_model.n_value == n:
 
-    					logprob = docprob(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram, language_model.vocabulary)
+                        logprob = docprob(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram,
+                                          language_model.vocabulary)
 
-    					perplexity = 2 ** -(logprob / len(tokens_dev))
+                        perplexity = 2 ** -(logprob / len(tokens_dev))
 
-    					if perplexity < min_perplexity:
-    						min_perplexity = perplexity
-    						best_guess_train_file = language_model.filename_train
+                        if perplexity < min_perplexity:
+                            min_perplexity = perplexity
+                            best_guess_train_file = language_model.filename_train
 
-    			print(filename_dev, best_guess_train_file)
+                print(filename_dev, best_guess_train_file)
 
     if args.interpolation:
 
-    	for n in range (2,3):
+        for n in range(2, 3):
 
-    		for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
+            for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
-    			min_perplexity = sys.maxsize
+                min_perplexity = sys.maxsize
 
-    			best_guess_train_file = None
+                best_guess_train_file = None
 
-    			f_dev = open(filename_dev, "r")
-    			contents_dev = f_dev.read()
-    			tokens_dev = list(contents_dev)
+                f_dev = open(filename_dev, "r")
+                contents_dev = f_dev.read()
+                tokens_dev = list(contents_dev)
 
-    			for language_model in language_models:
+                for language_model in language_models:
 
-    				#lambda_list = interpolation_algorithm(n, language_model.tokens_train)
+                    if language_model.n_value == n:
 
-    				print(n)
+                        lambda_list = interpolation_algorithm(n, language_model.tokens_train)
+                        print(lambda_list)
 
+                break
 
 
 if __name__ == "__main__":
