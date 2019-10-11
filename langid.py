@@ -11,6 +11,7 @@ import math
 
 import collections
 
+import csv
 
 class Lang_Model:
 
@@ -22,7 +23,7 @@ class Lang_Model:
         self.ngram = ngram
         self.n_minus1_gram = n_minus1_gram
 
-        self.tokens_train = tokens_train  # need this for unigram only
+        self.tokens_train = tokens_train  
 
         self.vocabulary = vocabulary  # used for Laplace smoothing
 
@@ -74,6 +75,19 @@ def training_language_models(path_train):
     return language_models
 
 
+
+def write_to_file (output_filename, output_list):
+
+	with open (output_filename, 'wt') as out_file:
+
+		tsv_writer = csv.writer(out_file, delimiter = '\t')
+
+		for output in output_list:
+
+			tsv_writer.writerow([output[0],output[1],output[2],output[3]])
+
+
+
 def ngram_prob(token_list, ngram, n_minus1_gram, vocabulary):
     list_length = len(token_list)
 
@@ -86,16 +100,7 @@ def ngram_prob(token_list, ngram, n_minus1_gram, vocabulary):
     return math.log2(numerator / denominator)
 
 
-def docprob_unigram(tokens_dev, tokens_train):
-    logprob = 0
 
-    for i in range(0, len(tokens_dev)):
-
-        if tokens_train.count(tokens_dev[i]) == 0:
-            tokens_dev[i] = "#"
-
-        logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
-    return logprob
 
 
 def docprob(token, n, ngram, n_minus1_gram, vocabulary):
@@ -110,6 +115,17 @@ def docprob(token, n, ngram, n_minus1_gram, vocabulary):
         logprob += ngram_prob(token_list, ngram, n_minus1_gram, vocabulary)
     return logprob
 
+
+def docprob_unigram(tokens_dev, tokens_train):
+    logprob = 0
+
+    for i in range(0, len(tokens_dev)):
+
+        if tokens_train.count(tokens_dev[i]) == 0:
+            tokens_dev[i] = "#"
+
+        logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
+    return logprob
 
 # returns True if two filenames excluding extension are same
 # returns False if two filenames excluding extension are different
@@ -191,6 +207,8 @@ def get_lambda_values(n, tokens_train):
 
 def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
 
+    
+
 
     min_perplexity = sys.maxsize
 
@@ -209,7 +227,16 @@ def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
                 best_guess_train_file = language_model.filename_train
 
             # print(filename_dev, best_guess_train_file)
-    print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
+
+    output_line = []
+
+    output_line.append(filename_dev)
+    output_line.append(best_guess_train_file)
+    output_line.append(min_perplexity)
+    output_line.append(n)
+
+    return output_line
+    #print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
 
 
 def laplace_model (n, language_models, tokens_dev, filename_dev):
@@ -231,7 +258,16 @@ def laplace_model (n, language_models, tokens_dev, filename_dev):
 	            min_perplexity = perplexity
 	            best_guess_train_file = language_model.filename_train
 
-	print(filename_dev, best_guess_train_file)
+	output_line = []
+
+	output_line.append(filename_dev)
+	output_line.append(best_guess_train_file)
+	output_line.append(min_perplexity)
+	output_line.append(n)
+
+	return output_line
+
+	#print(filename_dev, best_guess_train_file)
 
 
 def interpolation_model(n, language_models, tokens_dev, filename_dev):
@@ -273,9 +309,12 @@ def main():
 
     language_models = training_language_models(path_train)
 
+    output_list = []
     
 
         
+    perp = 0;
+    count = 0;
 
     for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
@@ -286,18 +325,47 @@ def main():
 
         if args.unsmoothed:
 
-            unsmoothed_model(1, language_models, tokens_dev, filename_dev)
+            output_line = unsmoothed_model(1, language_models, tokens_dev, filename_dev)
 
 
         if args.laplace:
 
-        	laplace_model(2, language_models, tokens_dev, filename_dev)
+            output_line = laplace_model(7, language_models, tokens_dev, filename_dev)
+
+            """if(compare_file_names_ignoring_extension(output_line[0], output_line[1])):
+
+            	count += 1 ;
+
+            	perp += output_line[2]"""
+
+
 
             
         if args.interpolation:
 
             interpolation_model(3, language_models, tokens_dev, filename_dev)
 
+            output_line = [] #Write code to get ouput line. output line contains 4 things. see laplace method above.
+
+
+        output_list.append(output_line)
+
+    if args.unsmoothed:
+
+    	output_filename = "results_dev_unsmoothed.txt"
+
+    if args.laplace:
+        output_filename = "results_dev_laplace.txt"
+
+    if args.interpolation:
+
+    	output_filename = "results_dev_interpolation.txt"
+
+    write_to_file(output_filename, output_list)
+
+    print(count)
+
+    print(perp/count)
 
 
 
