@@ -1,17 +1,11 @@
-import glob
-import os
 import argparse
-import sys
-
-import nltk
+import collections
+import csv
+import glob
+import math
 
 from nltk import *
 
-import math
-
-import collections
-
-import csv
 
 class Lang_Model:
 
@@ -23,7 +17,7 @@ class Lang_Model:
         self.ngram = ngram
         self.n_minus1_gram = n_minus1_gram
 
-        self.tokens_train = tokens_train  
+        self.tokens_train = tokens_train
 
         self.vocabulary = vocabulary  # used for Laplace smoothing
 
@@ -75,20 +69,30 @@ def training_language_models(path_train):
     return language_models
 
 
+def write_to_file(output_filename, output_list):
+    with open(output_filename, 'wt') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
 
-def write_to_file (output_filename, output_list):
-
-	with open (output_filename, 'wt') as out_file:
-
-		tsv_writer = csv.writer(out_file, delimiter = '\t')
-
-		for output in output_list:
-
-			tsv_writer.writerow([output[0],output[1],output[2],output[3]])
+        for output in output_list:
+            tsv_writer.writerow([output[0], output[1], output[2], output[3]])
 
 
+def ngram_prob_interpolation(token_list, ngram, n_minus1_gram, lambda_value):
+    list_length = len(token_list)
 
-def ngram_prob(token_list, ngram, n_minus1_gram, vocabulary):
+    sliced_list = token_list[0:list_length - 1]
+
+    numerator = ngram.count(tuple(token_list))
+
+    denominator = n_minus1_gram.count(tuple(sliced_list))
+
+    if denominator == 0 or numerator == 0:
+        return 0
+
+    return math.log2(lambda_value * numerator / denominator)
+
+
+def ngram_prob_laplace(token_list, ngram, n_minus1_gram, vocabulary):
     list_length = len(token_list)
 
     sliced_list = token_list[0:list_length - 1]
@@ -100,10 +104,7 @@ def ngram_prob(token_list, ngram, n_minus1_gram, vocabulary):
     return math.log2(numerator / denominator)
 
 
-
-
-
-def docprob(token, n, ngram, n_minus1_gram, vocabulary):
+def docprob_laplace(token, n, ngram, n_minus1_gram, vocabulary):
     logprob = 0
     for i in range(n - 1, len(token)):
 
@@ -112,7 +113,7 @@ def docprob(token, n, ngram, n_minus1_gram, vocabulary):
         for a in range(i - n + 1, i + 1):
             token_list.append(token[a])
 
-        logprob += ngram_prob(token_list, ngram, n_minus1_gram, vocabulary)
+        logprob += ngram_prob_laplace(token_list, ngram, n_minus1_gram, vocabulary)
     return logprob
 
 
@@ -126,6 +127,48 @@ def docprob_unigram(tokens_dev, tokens_train):
 
         logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
     return logprob
+
+def docprob_unigram_interpolation(tokens_dev, tokens_train, lambda_value):
+    logprob = 0
+
+    for i in range(0, len(tokens_dev)):
+
+        if tokens_train.count(tokens_dev[i]) == 0:
+            tokens_dev[i] = "#"
+
+        logprob += math.log2(lambda_value * tokens_train.count(tokens_dev[i]) / len(tokens_train))
+    return logprob
+
+def docprob_interpolation(tokens_dev, tokens_train, n):
+    gram_list = [[]]  # setting first element to empty list so that we can put ith gram in index i
+
+    for i in range(1, n + 1):
+        igram = ngrams(tokens_train, i)
+        igram = list(igram)
+
+        gram_list.append(igram)
+
+    lambda_value_list = get_lambda_values(n, gram_list)  # ith lambda is in index i and so on, lambda 1 in index 1
+
+    docprob = 0
+    for h in range(1, n + 1):
+        if h == 1:
+            docprob += docprob_unigram_interpolation(tokens_dev, tokens_train, lambda_value_list[h])
+
+        else:
+            logprob = 0
+            for i in range(n - 1, len(tokens_dev)):
+                token_list = []
+
+                for a in range(i - n + 1, i + 1):
+                    token_list.append(tokens_dev[a])
+
+                logprob += ngram_prob_interpolation(token_list, gram_list[h], gram_list[h - 1], lambda_value_list[h])
+
+            docprob += logprob
+
+    return docprob
+
 
 # returns True if two filenames excluding extension are same
 # returns False if two filenames excluding extension are different
@@ -151,65 +194,57 @@ def normalize_lambda_values(lambda_value_list):
     return lambda_value_list
 
 
-def get_lambda_values(n, tokens_train):
-    gram_list = [[]]  # setting first element to empty list so that we can put ith gram in index i
-
+def get_lambda_values(n, gram_list):
     lambda_value_list = [0]  # setting first element 0 so that we can put value of ith lambda in index i
 
     for i in range(1, n + 1):
-        igram = ngrams(tokens_train, i)
-        igram = list(igram)
-
-        gram_list.append(igram)
         lambda_value_list.append(0)
 
-    ngram = gram_list[n]
+    if len(gram_list) == n + 1:
+        ngram = gram_list[n]
 
-    for each_tuple in ngram:
+        for each_tuple in ngram:
 
-        max_count = - sys.maxsize - 1
-        max_count_index = 0
+            max_count = - sys.maxsize - 1
+            max_count_index = 0
 
-        ngram_each_tuple_count = ngram.count(each_tuple)
+            ngram_each_tuple_count = ngram.count(each_tuple)
 
-        if ngram_each_tuple_count > 0:
+            if ngram_each_tuple_count > 0:
 
-            for i in range(1, n + 1):
+                for i in range(1, n + 1):
 
-                if i == n:
+                    if i == n:
+                        numerator = gram_list[1].count(tuple(each_tuple[n - 1])) - 1
+                        denominator = len(gram_list[1]) - 1
 
-                    if len(gram_list[1]) - 1 == 0:
+                    else:
+                        n_minus_i_plus_1_gram = gram_list[n - i + 1]
+                        n_minus_i_gram = gram_list[n - i]
+
+                        numerator = n_minus_i_plus_1_gram.count(each_tuple[i - 1:n]) - 1
+                        denominator = n_minus_i_gram.count(each_tuple[0:n - i]) - 1
+
+                    if denominator == 0:
                         count = 0
                     else:
-                        count = (gram_list[1].count(tuple(each_tuple[n - 1])) - 1) / (len(gram_list[1]) - 1)
+                        count = numerator / denominator
 
-                else:
-                    n_minus_i_plus_1_gram = gram_list[n - i + 1]
-                    n_minus_i_gram = gram_list[n - i]
+                    if count > max_count:
+                        max_count = count
+                        max_count_index = n - i + 1
 
-                    if n_minus_i_gram.count(each_tuple[0:n - i]) - 1 == 0:
-                        count = 0
-                    else:
-                        count = (n_minus_i_plus_1_gram.count(each_tuple[i - 1:n]) - 1) / (
-                                n_minus_i_gram.count(each_tuple[0:n - i]) - 1)
+                lambda_value_list[max_count_index] += ngram_each_tuple_count
 
-                if count > max_count:
-                    max_count = count
-                    max_count_index = n - i + 1
+        normalized_lambda_value_list = normalize_lambda_values(lambda_value_list)
 
-            lambda_value_list[max_count_index] += ngram_each_tuple_count
+        return normalized_lambda_value_list
 
-    normalized_lambda_value_list = normalize_lambda_values(lambda_value_list)
-
-    return normalized_lambda_value_list
-
+    else:
+        return lambda_value_list
 
 
 def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
-
-    
-
-
     min_perplexity = sys.maxsize
 
     best_guess_train_file = None
@@ -236,54 +271,61 @@ def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
     output_line.append(n)
 
     return output_line
-    #print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
+    # print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
 
 
-def laplace_model (n, language_models, tokens_dev, filename_dev):
+def laplace_model(n, language_models, tokens_dev, filename_dev):
+    min_perplexity = sys.maxsize
 
-	min_perplexity = sys.maxsize
-
-	best_guess_train_file = None
-
-	for language_model in language_models:
-
-	    if language_model.n_value == n:
-
-	        logprob = docprob(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram,
-	                                          language_model.vocabulary)
-
-	        perplexity = 2 ** -(logprob / len(tokens_dev))
-
-	        if perplexity < min_perplexity:
-	            min_perplexity = perplexity
-	            best_guess_train_file = language_model.filename_train
-
-	output_line = []
-
-	output_line.append(filename_dev)
-	output_line.append(best_guess_train_file)
-	output_line.append(min_perplexity)
-	output_line.append(n)
-
-	return output_line
-
-	#print(filename_dev, best_guess_train_file)
-
-
-def interpolation_model(n, language_models, tokens_dev, filename_dev):
+    best_guess_train_file = None
 
     for language_model in language_models:
 
         if language_model.n_value == n:
 
-            lambda_list = get_lambda_values(n, language_model.tokens_train)
-            print(lambda_list)
+            logprob = docprob_laplace(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram,
+                                      language_model.vocabulary)
+
+            perplexity = 2 ** -(logprob / len(tokens_dev))
+
+            if perplexity < min_perplexity:
+                min_perplexity = perplexity
+                best_guess_train_file = language_model.filename_train
+
+    output_line = []
+
+    output_line.append(filename_dev)
+    output_line.append(best_guess_train_file)
+    output_line.append(min_perplexity)
+    output_line.append(n)
+
+    return output_line
 
 
+def interpolation_model(n, language_models, tokens_dev, filename_dev):
+    min_perplexity = sys.maxsize
 
+    best_guess_train_file = None
 
+    for language_model in language_models:
 
+        if language_model.n_value == n:
+            logprob = docprob_interpolation(tokens_dev, language_model.tokens_train, n)
 
+            perplexity = 2 ** -(logprob / len(tokens_dev))
+
+            if perplexity < min_perplexity:
+                min_perplexity = perplexity
+                best_guess_train_file = language_model.filename_train
+
+    output_line = []
+
+    output_line.append(filename_dev)
+    output_line.append(best_guess_train_file)
+    output_line.append(min_perplexity)
+    output_line.append(n)
+
+    return output_line
 
 
 # usage: langid.py [-h] --train TRAIN_PATH --dev DEV_PATH [--unsmoothed] [--laplace] [--interpolation]
@@ -310,26 +352,17 @@ def main():
     language_models = training_language_models(path_train)
 
     output_list = []
-    
 
-        
-    perp = 0;
-    count = 0;
+    perp = 0
+    count = 0
 
     for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
-
 
         f_dev = open(filename_dev, "r")
         contents_dev = f_dev.read()
         tokens_dev = list(contents_dev)
 
-        if args.unsmoothed:
-
-            output_line = unsmoothed_model(1, language_models, tokens_dev, filename_dev)
-
-
         if args.laplace:
-
             output_line = laplace_model(7, language_models, tokens_dev, filename_dev)
 
             """if(compare_file_names_ignoring_extension(output_line[0], output_line[1])):
@@ -338,36 +371,29 @@ def main():
 
             	perp += output_line[2]"""
 
+        elif args.interpolation:
+            output_line = interpolation_model(3, language_models, tokens_dev, filename_dev)
 
-
-            
-        if args.interpolation:
-
-            interpolation_model(3, language_models, tokens_dev, filename_dev)
-
-            output_line = [] #Write code to get ouput line. output line contains 4 things. see laplace method above.
-
+        else:
+            output_line = unsmoothed_model(1, language_models, tokens_dev, filename_dev)
 
         output_list.append(output_line)
 
-    if args.unsmoothed:
-
-    	output_filename = "results_dev_unsmoothed.txt"
 
     if args.laplace:
         output_filename = "results_dev_laplace.txt"
 
-    if args.interpolation:
+    elif args.interpolation:
+        output_filename = "results_dev_interpolation.txt"
 
-    	output_filename = "results_dev_interpolation.txt"
+    else:
+        output_filename = "results_dev_unsmoothed.txt"
 
     write_to_file(output_filename, output_list)
 
-    print(count)
+    # print(count)
 
-    print(perp/count)
-
-
+    # print(perp / count)
 
 
 if __name__ == "__main__":
