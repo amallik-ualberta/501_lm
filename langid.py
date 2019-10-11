@@ -135,7 +135,7 @@ def normalize_lambda_values(lambda_value_list):
     return lambda_value_list
 
 
-def interpolation_algorithm(n, tokens_train):
+def get_lambda_values(n, tokens_train):
     gram_list = [[]]  # setting first element to empty list so that we can put ith gram in index i
 
     lambda_value_list = [0]  # setting first element 0 so that we can put value of ith lambda in index i
@@ -188,6 +188,68 @@ def interpolation_algorithm(n, tokens_train):
     return normalized_lambda_value_list
 
 
+
+def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
+
+
+    min_perplexity = sys.maxsize
+
+    best_guess_train_file = None
+
+    for language_model in language_models:
+
+        if language_model.n_value == 1:
+
+            logprob = docprob_unigram(tokens_dev, language_model.tokens_train)
+            perplexity = 2 ** -(logprob / len(tokens_dev))
+
+            if perplexity < min_perplexity:
+                min_perplexity = perplexity
+
+                best_guess_train_file = language_model.filename_train
+
+            # print(filename_dev, best_guess_train_file)
+    print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
+
+
+def laplace_model (n, language_models, tokens_dev, filename_dev):
+
+	min_perplexity = sys.maxsize
+
+	best_guess_train_file = None
+
+	for language_model in language_models:
+
+	    if language_model.n_value == n:
+
+	        logprob = docprob(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram,
+	                                          language_model.vocabulary)
+
+	        perplexity = 2 ** -(logprob / len(tokens_dev))
+
+	        if perplexity < min_perplexity:
+	            min_perplexity = perplexity
+	            best_guess_train_file = language_model.filename_train
+
+	print(filename_dev, best_guess_train_file)
+
+
+def interpolation_model(n, language_models, tokens_dev, filename_dev):
+
+    for language_model in language_models:
+
+        if language_model.n_value == n:
+
+            lambda_list = get_lambda_values(n, language_model.tokens_train)
+            print(lambda_list)
+
+
+
+
+
+
+
+
 # usage: langid.py [-h] --train TRAIN_PATH --dev DEV_PATH [--unsmoothed] [--laplace] [--interpolation]
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -211,84 +273,33 @@ def main():
 
     language_models = training_language_models(path_train)
 
-    if args.unsmoothed:
+    
 
-        for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
+        
 
-            min_perplexity = sys.maxsize
+    for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
-            best_guess_train_file = None
 
-            f_dev = open(filename_dev, "r")
-            contents_dev = f_dev.read()
-            tokens_dev = list(contents_dev)
+        f_dev = open(filename_dev, "r")
+        contents_dev = f_dev.read()
+        tokens_dev = list(contents_dev)
 
-            for language_model in language_models:
+        if args.unsmoothed:
 
-                if language_model.n_value == 1:
+            unsmoothed_model(1, language_models, tokens_dev, filename_dev)
 
-                    logprob = docprob_unigram(tokens_dev, language_model.tokens_train)
-                    perplexity = 2 ** -(logprob / len(tokens_dev))
 
-                    if perplexity < min_perplexity:
-                        min_perplexity = perplexity
+        if args.laplace:
 
-                        best_guess_train_file = language_model.filename_train
+        	laplace_model(2, language_models, tokens_dev, filename_dev)
 
-            # print(filename_dev, best_guess_train_file)
-            print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
+            
+        if args.interpolation:
 
-    if args.laplace:
+            interpolation_model(3, language_models, tokens_dev, filename_dev)
 
-        for n in range(2, 10):
 
-            for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
 
-                min_perplexity = sys.maxsize
-
-                best_guess_train_file = None
-
-                f_dev = open(filename_dev, "r")
-                contents_dev = f_dev.read()
-                tokens_dev = list(contents_dev)
-
-                for language_model in language_models:
-
-                    if language_model.n_value == n:
-
-                        logprob = docprob(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram,
-                                          language_model.vocabulary)
-
-                        perplexity = 2 ** -(logprob / len(tokens_dev))
-
-                        if perplexity < min_perplexity:
-                            min_perplexity = perplexity
-                            best_guess_train_file = language_model.filename_train
-
-                print(filename_dev, best_guess_train_file)
-
-    if args.interpolation:
-
-        for n in range(2, 3):
-
-            for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
-
-                min_perplexity = sys.maxsize
-
-                best_guess_train_file = None
-
-                f_dev = open(filename_dev, "r")
-                contents_dev = f_dev.read()
-                tokens_dev = list(contents_dev)
-
-                for language_model in language_models:
-
-                    if language_model.n_value == n:
-
-                        lambda_list = interpolation_algorithm(n, language_model.tokens_train)
-                        print(lambda_list)
-
-                break
 
 
 if __name__ == "__main__":
