@@ -364,19 +364,19 @@ def main():
 
     path_test = args.test_path
 
-    value_of_n = 8
-
     if args.laplace:
+        value_of_n = 3
         language_models = training_language_models(path_train)
-        output_filename = "results_test_laplace.txt"
+        output_filename = "results_dev_laplace.txt"
 
     elif args.interpolation:
+        value_of_n = 6
         language_models = training_interpolation_language_models(path_train, value_of_n)
-        output_filename = "results_test_interpolation.txt"
+        output_filename = "results_dev_interpolation.txt"
 
     else:
         language_models = training_language_models(path_train)
-        output_filename = "results_test_unsmoothed.txt"
+        output_filename = "results_dev_unsmoothed.txt"
 
     output_list = []
 
