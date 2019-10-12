@@ -6,7 +6,7 @@ import math
 
 from nltk import *
 
-
+# for unsmoothed and laplace model
 class LanguageModel:
 
     def __init__(self, filename_train, n_value, ngram, n_minus1_gram, tokens_train, vocabulary):
@@ -21,7 +21,7 @@ class LanguageModel:
 
         self.vocabulary = vocabulary  # used for Laplace smoothing
 
-
+# for interpolation language model
 class InterpolationLanguageModel:
     def __init__(self, filename_train, n_value, tokens_train, gram_list, lambda_value_list):
         self.filename_train = filename_train
@@ -31,6 +31,7 @@ class InterpolationLanguageModel:
         self.lambda_value_list = lambda_value_list
 
 
+# stores language models
 def training_language_models(path_train):
     language_models = []
 
@@ -78,6 +79,7 @@ def training_language_models(path_train):
     return language_models
 
 
+# store value of ngrams and lambdas for each training file in InterpolationLanguageModel class
 def training_interpolation_language_models(path_train, n):
     language_models = []
 
@@ -105,6 +107,8 @@ def training_interpolation_language_models(path_train, n):
     return language_models
 
 
+#Writes to txt files
+
 def write_to_file(output_filename, output_list):
 
     for output in output_list:
@@ -124,6 +128,8 @@ def write_to_file(output_filename, output_list):
             tsv_writer.writerow([output[0],output[1], output[2], output[3]])
 
 
+#Finds the probability using laplace model formula
+
 def ngram_prob_laplace(token_list, ngram, n_minus1_gram, vocabulary):
     list_length = len(token_list)
 
@@ -136,6 +142,8 @@ def ngram_prob_laplace(token_list, ngram, n_minus1_gram, vocabulary):
     return math.log2(numerator / denominator)
 
 
+
+#Helper function for laplace model
 def docprob_laplace(token, n, ngram, n_minus1_gram, vocabulary):
     logprob = 0
     for i in range(n - 1, len(token)):
@@ -149,6 +157,8 @@ def docprob_laplace(token, n, ngram, n_minus1_gram, vocabulary):
     return logprob
 
 
+
+#Helper function for unsmoothed model
 def docprob_unigram(tokens_test, tokens_train):
     logprob = 0
 
@@ -161,6 +171,8 @@ def docprob_unigram(tokens_test, tokens_train):
     return logprob
 
 
+
+#Helper function for interpolation algorithm
 def calculate_interpolation_probability(gram_list, tokens_test, lambda_value_list, n):
     ngram_test = list(ngrams(tokens_test, n))
 
@@ -206,7 +218,7 @@ def compare_file_names_ignoring_extension(filename1, filename2):
 
     return len(file1_prefix) != 0 and len(file2_prefix) != 0 and file1_prefix[0] == file2_prefix[0]
 
-
+#Normalized the values of the lambda_value_list
 def normalize_lambda_values(lambda_value_list):
     sum_val = 0
     for value in lambda_value_list:
@@ -218,6 +230,8 @@ def normalize_lambda_values(lambda_value_list):
     return lambda_value_list
 
 
+
+#Generalized Version of Deleted Interpolation Algorithm
 def get_lambda_values(n, gram_list):
     lambda_value_list = [0]  # setting first element 0 so that we can put value of ith lambda in index i
 
@@ -268,6 +282,8 @@ def get_lambda_values(n, gram_list):
         return lambda_value_list
 
 
+
+#calculates perplexity of test files using unsmoothed model. Only consider unigrams
 def unsmoothed_model(n, language_models, tokens_test, filename_test):
     min_perplexity = sys.maxsize
 
@@ -298,25 +314,27 @@ def unsmoothed_model(n, language_models, tokens_test, filename_test):
     # print(compare_file_names_ignoring_extension(filename_test, best_guess_train_file))
 
 
+#calculates perplexity of test files using laplace smoothing
 def laplace_model(n, language_models, tokens_test, filename_test):
-    min_perplexity = sys.maxsize
 
-    best_guess_train_file = None
+    min_perplexity = sys.maxsize #set to the max value
 
-    for language_model in language_models:
+    best_guess_train_file = None 
 
-        if language_model.n_value == n:
+    for language_model in language_models: #language_models is a list of trained models
+
+        if language_model.n_value == n: #We pick only those language models which have n_value = n
 
             logprob = docprob_laplace(tokens_test, n, language_model.ngram, language_model.n_minus1_gram,
-                                      language_model.vocabulary)
+                                      language_model.vocabulary) #calculate the log probability of the whole test doc
 
-            perplexity = 2 ** -(logprob / len(tokens_test))
+            perplexity = 2 ** -(logprob / len(tokens_test)) #as we are using log probability, we use this equation
 
-            if perplexity < min_perplexity:
+            if perplexity < min_perplexity: # we find the min perplexity among all the language modles. We also get the corresponding training file name
                 min_perplexity = perplexity
                 best_guess_train_file = language_model.filename_train
 
-    output_line = []
+    output_line = [] #this is a line of our output, it has 4 elements
 
     output_line.append(filename_test)
     output_line.append(best_guess_train_file)
@@ -326,6 +344,7 @@ def laplace_model(n, language_models, tokens_test, filename_test):
     return output_line
 
 
+#calculates perplexity of test files using interpolation smoothing
 def interpolation_model(language_models, tokens_test, filename_test, n):
     min_perplexity = sys.maxsize
 
@@ -355,7 +374,7 @@ def interpolation_model(language_models, tokens_test, filename_test, n):
 
 
 # usage: langid.py [-h] --train TRAIN_PATH --test TEST_PATH [--unsmoothed] [--laplace] [--interpolation]
-def parse_arguments():
+def parse_arguments(): 
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', dest="train_path", action="store", default="811_a1_train", required=True)
     parser.add_argument('--test', dest="test_path", action="store", default="811_a1_test_final", required=True)
@@ -369,31 +388,31 @@ def parse_arguments():
 
 
 def main():
-    args = parse_arguments()
+    args = parse_arguments() 
 
-    path_train = args.train_path
+    path_train = args.train_path #the train folder
 
-    path_test = args.test_path
+    path_test = args.test_path #the test folder
 
 
-    if args.laplace:
+    if args.laplace: #if we use --laplace
         value_of_n = 3
         language_models = training_language_models(path_train)
-        output_filename = "results_test_laplace.txt"
+        output_filename = "results_test_add-one.txt" 
 
-    elif args.interpolation:
+    elif args.interpolation:#if we use --interpolation
         value_of_n = 6
         language_models = training_interpolation_language_models(path_train, value_of_n)
         output_filename = "results_test_interpolation.txt"
 
-    else:
+    else: #if we use --unsmoothed or if we do not use any options
         language_models = training_language_models(path_train)
         output_filename = "results_test_unsmoothed.txt"
 
     output_list = []
 
 
-    for filename_test in sorted(glob.glob(os.path.join(path_test, "*"))):
+    for filename_test in sorted(glob.glob(os.path.join(path_test, "*"))): # for each test file
 
         f_test = open(filename_test, "r")
         contents_test = f_test.read()
