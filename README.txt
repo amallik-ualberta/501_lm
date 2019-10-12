@@ -4,10 +4,10 @@ Team Members:
 
 Execution Instruction:
     run the following command in command line:
-        python langid.py --train TRAIN_FOLDER_PATH --dev DEV_FOLDER_PATH [OPTIONS}
+        python langid.py --train TRAIN_FOLDER_PATH --test TEST_FOLDER_PATH [OPTIONS}
 
         OPTIONS: --unsmoothed
                  --laplace
                  --interpolation
     example:
-        python langid.py --train 811_a1_train --dev 811_a1_dev --unsmoothed
+        python langid.py --train 811_a1_train --test 811_a1_test_final --unsmoothed

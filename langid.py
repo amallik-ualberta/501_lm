@@ -138,23 +138,23 @@ def docprob_laplace(token, n, ngram, n_minus1_gram, vocabulary):
     return logprob
 
 
-def docprob_unigram(tokens_dev, tokens_train):
+def docprob_unigram(tokens_test, tokens_train):
     logprob = 0
 
-    for i in range(0, len(tokens_dev)):
+    for i in range(0, len(tokens_test)):
 
-        if tokens_train.count(tokens_dev[i]) == 0:
-            tokens_dev[i] = "#"
+        if tokens_train.count(tokens_test[i]) == 0:
+            tokens_test[i] = "#"
 
-        logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
+        logprob += math.log2(tokens_train.count(tokens_test[i]) / len(tokens_train))
     return logprob
 
 
-def calculate_interpolation_probability(gram_list, tokens_dev, lambda_value_list, n):
-    ngram_dev = list(ngrams(tokens_dev, n))
+def calculate_interpolation_probability(gram_list, tokens_test, lambda_value_list, n):
+    ngram_test = list(ngrams(tokens_test, n))
 
     total_log_prob = 0
-    for each_tuple in ngram_dev:
+    for each_tuple in ngram_test:
 
         prob = 0
         for i in range(1, n + 1):
@@ -257,7 +257,7 @@ def get_lambda_values(n, gram_list):
         return lambda_value_list
 
 
-def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
+def unsmoothed_model(n, language_models, tokens_test, filename_test):
     min_perplexity = sys.maxsize
 
     best_guess_train_file = None
@@ -266,28 +266,28 @@ def unsmoothed_model(n, language_models, tokens_dev, filename_dev):
 
         if language_model.n_value == 1:
 
-            logprob = docprob_unigram(tokens_dev, language_model.tokens_train)
-            perplexity = 2 ** -(logprob / len(tokens_dev))
+            logprob = docprob_unigram(tokens_test, language_model.tokens_train)
+            perplexity = 2 ** -(logprob / len(tokens_test))
 
             if perplexity < min_perplexity:
                 min_perplexity = perplexity
 
                 best_guess_train_file = language_model.filename_train
 
-            # print(filename_dev, best_guess_train_file)
+            # print(filename_test, best_guess_train_file)
 
     output_line = []
 
-    output_line.append(filename_dev)
+    output_line.append(filename_test)
     output_line.append(best_guess_train_file)
     output_line.append(min_perplexity)
     output_line.append(n)
 
     return output_line
-    # print(compare_file_names_ignoring_extension(filename_dev, best_guess_train_file))
+    # print(compare_file_names_ignoring_extension(filename_test, best_guess_train_file))
 
 
-def laplace_model(n, language_models, tokens_dev, filename_dev):
+def laplace_model(n, language_models, tokens_test, filename_test):
     min_perplexity = sys.maxsize
 
     best_guess_train_file = None
@@ -296,10 +296,10 @@ def laplace_model(n, language_models, tokens_dev, filename_dev):
 
         if language_model.n_value == n:
 
-            logprob = docprob_laplace(tokens_dev, n, language_model.ngram, language_model.n_minus1_gram,
+            logprob = docprob_laplace(tokens_test, n, language_model.ngram, language_model.n_minus1_gram,
                                       language_model.vocabulary)
 
-            perplexity = 2 ** -(logprob / len(tokens_dev))
+            perplexity = 2 ** -(logprob / len(tokens_test))
 
             if perplexity < min_perplexity:
                 min_perplexity = perplexity
@@ -307,7 +307,7 @@ def laplace_model(n, language_models, tokens_dev, filename_dev):
 
     output_line = []
 
-    output_line.append(filename_dev)
+    output_line.append(filename_test)
     output_line.append(best_guess_train_file)
     output_line.append(min_perplexity)
     output_line.append(n)
@@ -315,7 +315,7 @@ def laplace_model(n, language_models, tokens_dev, filename_dev):
     return output_line
 
 
-def interpolation_model(language_models, tokens_dev, filename_dev, n):
+def interpolation_model(language_models, tokens_test, filename_test, n):
     min_perplexity = sys.maxsize
 
     best_guess_train_file = None
@@ -324,10 +324,10 @@ def interpolation_model(language_models, tokens_dev, filename_dev, n):
 
         if language_model.n_value == n:
 
-            log_docprob = calculate_interpolation_probability(language_model.gram_list, tokens_dev,
+            log_docprob = calculate_interpolation_probability(language_model.gram_list, tokens_test,
                                                               language_model.lambda_value_list, n)
 
-            perplexity = 2 ** -(log_docprob / len(tokens_dev))
+            perplexity = 2 ** -(log_docprob / len(tokens_test))
 
             if perplexity < min_perplexity:
                 min_perplexity = perplexity
@@ -335,7 +335,7 @@ def interpolation_model(language_models, tokens_dev, filename_dev, n):
 
     output_line = []
 
-    output_line.append(filename_dev)
+    output_line.append(filename_test)
     output_line.append(best_guess_train_file)
     output_line.append(min_perplexity)
     output_line.append(n)
@@ -343,11 +343,11 @@ def interpolation_model(language_models, tokens_dev, filename_dev, n):
     return output_line
 
 
-# usage: langid.py [-h] --train TRAIN_PATH --dev DEV_PATH [--unsmoothed] [--laplace] [--interpolation]
+# usage: langid.py [-h] --train TRAIN_PATH --test TEST_PATH [--unsmoothed] [--laplace] [--interpolation]
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', dest="train_path", action="store", default="811_a1_train", required=True)
-    parser.add_argument('--dev', dest="dev_path", action="store", default="811_a1_dev", required=True)
+    parser.add_argument('--test', dest="test_path", action="store", default="811_a1_test_final", required=True)
     parser.add_argument('--unsmoothed', action="store_true", default=False)
     parser.add_argument('--laplace', action="store_true", default=False)
     parser.add_argument('--interpolation', action="store_true", default=False)
@@ -362,35 +362,35 @@ def main():
 
     path_train = args.train_path
 
-    path_dev = args.dev_path
+    path_test = args.test_path
 
-    value_of_n = 5
+    value_of_n = 8
 
     if args.laplace:
         language_models = training_language_models(path_train)
-        output_filename = "results_dev_laplace.txt"
+        output_filename = "results_test_laplace.txt"
 
     elif args.interpolation:
         language_models = training_interpolation_language_models(path_train, value_of_n)
-        output_filename = "results_dev_interpolation.txt"
+        output_filename = "results_test_interpolation.txt"
 
     else:
         language_models = training_language_models(path_train)
-        output_filename = "results_dev_unsmoothed.txt"
+        output_filename = "results_test_unsmoothed.txt"
 
     output_list = []
 
     perp = 0
     count = 0
 
-    for filename_dev in sorted(glob.glob(os.path.join(path_dev, "*"))):
+    for filename_test in sorted(glob.glob(os.path.join(path_test, "*"))):
 
-        f_dev = open(filename_dev, "r")
-        contents_dev = f_dev.read()
-        tokens_dev = list(contents_dev)
+        f_test = open(filename_test, "r")
+        contents_test = f_test.read()
+        tokens_test = list(contents_test)
 
         if args.laplace:
-            output_line = laplace_model(value_of_n, language_models, tokens_dev, filename_dev)
+            output_line = laplace_model(value_of_n, language_models, tokens_test, filename_test)
 
             """if(compare_file_names_ignoring_extension(output_line[0], output_line[1])):
 
@@ -399,7 +399,7 @@ def main():
             	perp += output_line[2]"""
 
         elif args.interpolation:
-            output_line = interpolation_model(language_models, tokens_dev, filename_dev, value_of_n)
+            output_line = interpolation_model(language_models, tokens_test, filename_test, value_of_n)
             print(output_line[0], output_line[1])
             if compare_file_names_ignoring_extension(output_line[0], output_line[1]):
                 count += 1
@@ -407,7 +407,7 @@ def main():
                 perp += output_line[2]
 
         else:
-            output_line = unsmoothed_model(1, language_models, tokens_dev, filename_dev)
+            output_line = unsmoothed_model(1, language_models, tokens_test, filename_test)
 
         output_list.append(output_line)
 
