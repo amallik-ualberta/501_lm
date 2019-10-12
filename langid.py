@@ -96,7 +96,7 @@ def training_interpolation_language_models(path_train, n):
             gram_list.append(igram)
 
         lambda_value_list = get_lambda_values(n, gram_list)  # ith lambda is in index i and so on, lambda 1 in index 1
-        print(lambda_value_list)
+        # print(lambda_value_list)
 
         temp_lang_model = InterpolationLanguageModel(filename_train, n, tokens_train, gram_list,
                                                      lambda_value_list)
@@ -365,25 +365,24 @@ def main():
     path_test = args.test_path
 
 
-    value_of_n = 6
-
-
     if args.laplace:
+        value_of_n = 3
         language_models = training_language_models(path_train)
-        output_filename = "results_test_laplace.txt"
+        output_filename = "results_dev_laplace.txt"
 
     elif args.interpolation:
+        value_of_n = 6
         language_models = training_interpolation_language_models(path_train, value_of_n)
-        output_filename = "results_test_interpolation.txt"
+        output_filename = "results_dev_interpolation.txt"
 
     else:
         language_models = training_language_models(path_train)
-        output_filename = "results_test_unsmoothed.txt"
+        output_filename = "results_dev_unsmoothed.txt"
 
     output_list = []
 
-    perp = 0
-    count = 0
+    # perp = 0
+    # count = 0
 
     for filename_test in sorted(glob.glob(os.path.join(path_test, "*"))):
 
@@ -402,11 +401,11 @@ def main():
 
         elif args.interpolation:
             output_line = interpolation_model(language_models, tokens_test, filename_test, value_of_n)
-            print(output_line[0], output_line[1])
-            if compare_file_names_ignoring_extension(output_line[0], output_line[1]):
-                count += 1
-
-                perp += output_line[2]
+            # print(output_line[0], output_line[1])
+            # if compare_file_names_ignoring_extension(output_line[0], output_line[1]):
+            #     count += 1
+            #
+            #     perp += output_line[2]
 
         else:
             output_line = unsmoothed_model(1, language_models, tokens_test, filename_test)
@@ -415,9 +414,9 @@ def main():
 
     write_to_file(output_filename, output_list)
 
-    print(count)
-
-    print(perp / count)
+    # print(count)
+    #
+    # print(perp / count)
 
 
 if __name__ == "__main__":

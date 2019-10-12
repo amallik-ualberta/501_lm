@@ -1,111 +1,111 @@
+811_a1_dev\udhr-als.txt.dev	811_a1_train\udhr-als.txt.tra	5.3234947093215945	6
 
-811_a1_dev\udhr-als.txt.dev	811_a1_train\udhr-als.txt.tra	7.20756867414011	8
+811_a1_dev\udhr-amc.txt.dev	811_a1_train\udhr-amc.txt.tra	8.615431283174253	6
 
-811_a1_dev\udhr-amc.txt.dev	811_a1_train\udhr-amc.txt.tra	8.760321746438404	8
+811_a1_dev\udhr-bcl.txt.dev	811_a1_train\udhr-bcl.txt.tra	4.276213515540349	6
 
-811_a1_dev\udhr-bcl.txt.dev	811_a1_train\udhr-bcl.txt.tra	4.542053086438302	8
+811_a1_dev\udhr-blu.txt.dev	811_a1_train\udhr-blu.txt.tra	4.198783591020192	6
 
-811_a1_dev\udhr-blu.txt.dev	811_a1_train\udhr-blu.txt.tra	4.962818468755997	8
+811_a1_dev\udhr-bre.txt.dev	811_a1_train\udhr-bre.txt.tra	4.695194820285868	6
 
-811_a1_dev\udhr-bre.txt.dev	811_a1_train\udhr-bre.txt.tra	5.348616902300692	8
+811_a1_dev\udhr-ccx.txt.dev	811_a1_train\udhr-ccx.txt.tra	6.461282700262983	6
 
-811_a1_dev\udhr-ccx.txt.dev	811_a1_train\udhr-ccx.txt.tra	10.30651893515892	8
+811_a1_dev\udhr-cha.txt.dev	811_a1_train\udhr-cha.txt.tra	5.477967922551783	6
 
-811_a1_dev\udhr-cha.txt.dev	811_a1_train\udhr-cha.txt.tra	5.834947534370444	8
+811_a1_dev\udhr-cjk.txt.dev	811_a1_train\udhr-cjk.txt.tra	3.9846547367267036	6
 
-811_a1_dev\udhr-cjk.txt.dev	811_a1_train\udhr-cjk.txt.tra	5.14655631381167	8
+811_a1_dev\udhr-cjk_AO.txt.dev	811_a1_train\udhr-cjk_AO.txt.tra	4.103441581443125	6
 
-811_a1_dev\udhr-cjk_AO.txt.dev	811_a1_train\udhr-cjk_AO.txt.tra	4.903446825488274	8
+811_a1_dev\udhr-deu_1901.txt.dev	811_a1_train\udhr-deu_1996.txt.tra	5.612057306363357	6
 
-811_a1_dev\udhr-deu_1901.txt.dev	811_a1_train\udhr-deu_1901.txt.tra	7.530020795500131	8
+811_a1_dev\udhr-deu_1996.txt.dev	811_a1_train\udhr-deu_1996.txt.tra	5.612057306363357	6
 
-811_a1_dev\udhr-deu_1996.txt.dev	811_a1_train\udhr-deu_1901.txt.tra	7.530020795500131	8
+811_a1_dev\udhr-eng.txt.dev	811_a1_train\udhr-eng.txt.tra	4.788966377921672	6
 
-811_a1_dev\udhr-eng.txt.dev	811_a1_train\udhr-eng.txt.tra	5.415780324839422	8
+811_a1_dev\udhr-hat_kreyol.txt.dev	811_a1_train\udhr-hat_kreyol.txt.tra	7.0242396037131725	6
 
-811_a1_dev\udhr-hat_kreyol.txt.dev	811_a1_train\udhr-hat_kreyol.txt.tra	11.181908050743022	8
+811_a1_dev\udhr-hat_popular.txt.dev	811_a1_train\udhr-hat_popular.txt.tra	6.358190790177539	6
 
-811_a1_dev\udhr-hat_popular.txt.dev	811_a1_train\udhr-hat_popular.txt.tra	9.748348630401587	8
+811_a1_dev\udhr-hea.txt.dev	811_a1_train\udhr-hea.txt.tra	5.30691188135875	6
 
-811_a1_dev\udhr-hea.txt.dev	811_a1_train\udhr-hea.txt.tra	6.3477382723160805	8
+811_a1_dev\udhr-hms.txt.dev	811_a1_train\udhr-hms.txt.tra	3.267572056644695	6
 
-811_a1_dev\udhr-hms.txt.dev	811_a1_train\udhr-hms.txt.tra	4.038481172175429	8
+811_a1_dev\udhr-hni.txt.dev	811_a1_train\udhr-hni.txt.tra	3.9199131570955617	6
 
-811_a1_dev\udhr-hni.txt.dev	811_a1_train\udhr-hni.txt.tra	5.173922656304626	8
+811_a1_dev\udhr-ido.txt.dev	811_a1_train\udhr-ido.txt.tra	6.287963418333206	6
 
-811_a1_dev\udhr-ido.txt.dev	811_a1_train\udhr-ido.txt.tra	7.871047114252047	8
+811_a1_dev\udhr-kin.txt.dev	811_a1_train\udhr-kin.txt.tra	4.56932210586646	6
 
-811_a1_dev\udhr-kin.txt.dev	811_a1_train\udhr-kin.txt.tra	5.708544314587301	8
+811_a1_dev\udhr-koo.txt.dev	811_a1_train\udhr-koo.txt.tra	4.860683242927819	6
 
-811_a1_dev\udhr-koo.txt.dev	811_a1_train\udhr-koo.txt.tra	5.445948960019193	8
+811_a1_dev\udhr-kqn.txt.dev	811_a1_train\udhr-kqn.txt.tra	6.433376013127577	6
 
-811_a1_dev\udhr-kqn.txt.dev	811_a1_train\udhr-kqn.txt.tra	6.648437172504437	8
+811_a1_dev\udhr-kri.txt.dev	811_a1_train\udhr-kri.txt.tra	4.888095002935761	6
 
-811_a1_dev\udhr-kri.txt.dev	811_a1_train\udhr-kri.txt.tra	6.444140974026523	8
+811_a1_dev\udhr-lad.txt.dev	811_a1_train\udhr-lad.txt.tra	4.9505740878818765	6
 
-811_a1_dev\udhr-lad.txt.dev	811_a1_train\udhr-lad.txt.tra	5.064262941705435	8
+811_a1_dev\udhr-lun.txt.dev	811_a1_train\udhr-lun.txt.tra	5.0557965601426105	6
 
-811_a1_dev\udhr-lun.txt.dev	811_a1_train\udhr-lun.txt.tra	5.61635341203737	8
+811_a1_dev\udhr-min.txt.dev	811_a1_train\udhr-min.txt.tra	4.664381343124606	6
 
-811_a1_dev\udhr-min.txt.dev	811_a1_train\udhr-min.txt.tra	5.076452036727739	8
+811_a1_dev\udhr-mly_latn.txt.dev	811_a1_train\udhr-mly_latn.txt.tra	5.113252204910792	6
 
-811_a1_dev\udhr-mly_latn.txt.dev	811_a1_train\udhr-mly_latn.txt.tra	5.369128373013134	8
+811_a1_dev\udhr-nba.txt.dev	811_a1_train\udhr-nba.txt.tra	4.018097464541002	6
 
-811_a1_dev\udhr-nba.txt.dev	811_a1_train\udhr-nba.txt.tra	5.057754742053012	8
+811_a1_dev\udhr-nbl.txt.dev	811_a1_train\udhr-nbl.txt.tra	7.232450276319646	6
 
-811_a1_dev\udhr-nbl.txt.dev	811_a1_train\udhr-nbl.txt.tra	9.309988929686044	8
+811_a1_dev\udhr-ndo.txt.dev	811_a1_train\udhr-ndo.txt.tra	6.96149458864343	6
 
-811_a1_dev\udhr-ndo.txt.dev	811_a1_train\udhr-ndo.txt.tra	8.874840082167504	8
+811_a1_dev\udhr-nds.txt.dev	811_a1_train\udhr-nds.txt.tra	4.220845751075529	6
 
-811_a1_dev\udhr-nds.txt.dev	811_a1_train\udhr-nds.txt.tra	5.111761534836258	8
+811_a1_dev\udhr-njo.txt.dev	811_a1_train\udhr-njo.txt.tra	6.019645609552635	6
 
-811_a1_dev\udhr-njo.txt.dev	811_a1_train\udhr-njo.txt.tra	8.367347205784734	8
+811_a1_dev\udhr-nld.txt.dev	811_a1_train\udhr-nld.txt.tra	5.782928996729921	6
 
-811_a1_dev\udhr-nld.txt.dev	811_a1_train\udhr-nld.txt.tra	7.592719091485774	8
+811_a1_dev\udhr-nya_chechewa.txt.dev	811_a1_train\udhr-nya_chechewa.txt.tra	5.622676907966875	6
 
-811_a1_dev\udhr-nya_chechewa.txt.dev	811_a1_train\udhr-nya_chechewa.txt.tra	7.305269264855913	8
+811_a1_dev\udhr-nya_chinyanja.txt.dev	811_a1_train\udhr-nya_chechewa.txt.tra	4.841372784738748	6
 
-811_a1_dev\udhr-nya_chinyanja.txt.dev	811_a1_train\udhr-nya_chechewa.txt.tra	5.359438889900335	8
+811_a1_dev\udhr-nyn.txt.dev	811_a1_train\udhr-nyn.txt.tra	6.532218207519172	6
 
-811_a1_dev\udhr-nyn.txt.dev	811_a1_train\udhr-nyn.txt.tra	9.36428457433341	8
+811_a1_dev\udhr-pcm.txt.dev	811_a1_train\udhr-pcm.txt.tra	5.077983969778652	6
 
-811_a1_dev\udhr-pcm.txt.dev	811_a1_train\udhr-pcm.txt.tra	7.763998690247496	8
+811_a1_dev\udhr-quy.txt.dev	811_a1_train\udhr-quy.txt.tra	6.028143220878081	6
 
-811_a1_dev\udhr-quy.txt.dev	811_a1_train\udhr-quy.txt.tra	7.983823934249416	8
+811_a1_dev\udhr-qvc.txt.dev	811_a1_train\udhr-qvc.txt.tra	5.573638571775317	6
 
-811_a1_dev\udhr-qvc.txt.dev	811_a1_train\udhr-qvc.txt.tra	7.3289265253908304	8
+811_a1_dev\udhr-qxa.txt.dev	811_a1_train\udhr-qxa.txt.tra	4.97038910495072	6
 
-811_a1_dev\udhr-qxa.txt.dev	811_a1_train\udhr-qxa.txt.tra	6.087646210282294	8
+811_a1_dev\udhr-qxu.txt.dev	811_a1_train\udhr-qxu.txt.tra	7.02468001396879	6
 
-811_a1_dev\udhr-qxu.txt.dev	811_a1_train\udhr-qxu.txt.tra	7.5365031805603655	8
+811_a1_dev\udhr-run.txt.dev	811_a1_train\udhr-run.txt.tra	5.605243432840235	6
 
-811_a1_dev\udhr-run.txt.dev	811_a1_train\udhr-run.txt.tra	6.968486616810039	8
+811_a1_dev\udhr-sco.txt.dev	811_a1_train\udhr-sco.txt.tra	5.630943747298933	6
 
-811_a1_dev\udhr-sco.txt.dev	811_a1_train\udhr-sco.txt.tra	7.437594874724062	8
+811_a1_dev\udhr-snk.txt.dev	811_a1_train\udhr-snk.txt.tra	5.315400029949602	6
 
-811_a1_dev\udhr-snk.txt.dev	811_a1_train\udhr-snk.txt.tra	6.5532081219375655	8
+811_a1_dev\udhr-som.txt.dev	811_a1_train\udhr-som.txt.tra	5.025806464220723	6
 
-811_a1_dev\udhr-som.txt.dev	811_a1_train\udhr-som.txt.tra	6.350319156273532	8
+811_a1_dev\udhr-ssw.txt.dev	811_a1_train\udhr-ssw.txt.tra	5.373150340885505	6
 
-811_a1_dev\udhr-ssw.txt.dev	811_a1_train\udhr-ssw.txt.tra	6.421749857657878	8
+811_a1_dev\udhr-swh.txt.dev	811_a1_train\udhr-swh.txt.tra	6.888317688745746	6
 
-811_a1_dev\udhr-swh.txt.dev	811_a1_train\udhr-swh.txt.tra	8.705386077937494	8
+811_a1_dev\udhr-tiv.txt.dev	811_a1_train\udhr-tiv.txt.tra	4.773941985705609	6
 
-811_a1_dev\udhr-tiv.txt.dev	811_a1_train\udhr-tiv.txt.tra	5.957729622984184	8
+811_a1_dev\udhr-uig_latn.txt.dev	811_a1_train\udhr-uig_latn.txt.tra	6.758730353439939	6
 
-811_a1_dev\udhr-uig_latn.txt.dev	811_a1_train\udhr-uig_latn.txt.tra	8.649849776991728	8
+811_a1_dev\udhr-uzn_latn.txt.dev	811_a1_train\udhr-uzn_latn.txt.tra	7.379746106310567	6
 
-811_a1_dev\udhr-uzn_latn.txt.dev	811_a1_train\udhr-uzn_latn.txt.tra	10.116831744218462	8
+811_a1_dev\udhr-vmw.txt.dev	811_a1_train\udhr-vmw.txt.tra	5.505474071684035	6
 
-811_a1_dev\udhr-vmw.txt.dev	811_a1_train\udhr-vmw.txt.tra	6.555120901849044	8
+811_a1_dev\udhr-xho.txt.dev	811_a1_train\udhr-xho.txt.tra	6.599056310423667	6
 
-811_a1_dev\udhr-xho.txt.dev	811_a1_train\udhr-zul.txt.tra	9.843151668732782	8
+811_a1_dev\udhr-xsm.txt.dev	811_a1_train\udhr-xsm.txt.tra	8.505668554655562	6
 
-811_a1_dev\udhr-xsm.txt.dev	811_a1_train\udhr-xsm.txt.tra	10.532700115041633	8
+811_a1_dev\udhr-yao.txt.dev	811_a1_train\udhr-yao.txt.tra	6.5867107038205495	6
 
-811_a1_dev\udhr-yao.txt.dev	811_a1_train\udhr-yao.txt.tra	8.801271436669905	8
+811_a1_dev\udhr-ztu.txt.dev	811_a1_train\udhr-ztu.txt.tra	5.532922915438898	6
 
-811_a1_dev\udhr-ztu.txt.dev	811_a1_train\udhr-ztu.txt.tra	5.698843614005192	8
+811_a1_dev\udhr-zul.txt.dev	811_a1_train\udhr-zul.txt.tra	7.419108544412694	6
 
-811_a1_dev\udhr-zul.txt.dev	811_a1_train\udhr-zul.txt.tra	10.38512188117319	8
-
+>>>>>>> 95e82909b28a723f386580934effc34b4f9e3961
