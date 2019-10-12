@@ -364,7 +364,9 @@ def main():
 
     path_test = args.test_path
 
-    value_of_n = 8
+
+    value_of_n = 6
+
 
     if args.laplace:
         language_models = training_language_models(path_train)
