@@ -364,7 +364,8 @@ def main():
 
     path_dev = args.dev_path
 
-    value_of_n = 4
+
+    value_of_n = 2
 
     if args.laplace:
         language_models = training_language_models(path_train)
@@ -383,7 +384,7 @@ def main():
     perp = 0
     count = 0
 
-    for filename_dev in glob.glob(os.path.join(path_dev, "*")):
+    for filename_dev in sorted(glob.glob(os.path.join(path_dev, "*"))):
 
         f_dev = open(filename_dev, "r")
         contents_dev = f_dev.read()
