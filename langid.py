@@ -7,7 +7,7 @@ import math
 from nltk import *
 
 
-class Lang_Model:
+class LanguageModel:
 
     def __init__(self, filename_train, n_value, ngram, n_minus1_gram, tokens_train, vocabulary):
         self.filename_train = filename_train
@@ -22,10 +22,19 @@ class Lang_Model:
         self.vocabulary = vocabulary  # used for Laplace smoothing
 
 
+class InterpolationLanguageModel:
+    def __init__(self, filename_train, n_value, tokens_train, gram_list, lambda_value_list):
+        self.filename_train = filename_train
+        self.tokens_train = tokens_train
+        self.n_value = n_value
+        self.gram_list = gram_list
+        self.lambda_value_list = lambda_value_list
+
+
 def training_language_models(path_train):
     language_models = []
 
-    for filename_train in glob.glob(os.path.join(path_train, "*.tra")):
+    for filename_train in glob.glob(os.path.join(path_train, "*")):
 
         f_train = open(filename_train, "r")
         contents_train = f_train.read()
@@ -49,7 +58,7 @@ def training_language_models(path_train):
 
         vocabulary = len(unique_tokens)
 
-        for n in range(1, 10):
+        for n in range(1, 7):
 
             ngram = ngrams(tokens_train, n)
 
@@ -63,8 +72,35 @@ def training_language_models(path_train):
 
                 n_minus1_gram = list(n_minus1_gram)
 
-            temp_lang_model = Lang_Model(filename_train, n, ngram, n_minus1_gram, tokens_train, vocabulary)
+            temp_lang_model = LanguageModel(filename_train, n, ngram, n_minus1_gram, tokens_train, vocabulary)
             language_models.append(temp_lang_model)
+
+    return language_models
+
+
+def training_interpolation_language_models(path_train, n):
+    language_models = []
+
+    for filename_train in glob.glob(os.path.join(path_train, "*")):
+
+        f_train = open(filename_train, "r")
+        contents_train = f_train.read()
+        tokens_train = list(contents_train)
+
+        gram_list = [[]]  # setting first element to empty list so that we can put ith gram in index i
+
+        for i in range(1, n + 1):
+            igram = ngrams(tokens_train, i)
+            igram = list(igram)
+
+            gram_list.append(igram)
+
+        lambda_value_list = get_lambda_values(n, gram_list)  # ith lambda is in index i and so on, lambda 1 in index 1
+        print(lambda_value_list)
+
+        temp_lang_model = InterpolationLanguageModel(filename_train, n, tokens_train, gram_list,
+                                                     lambda_value_list)
+        language_models.append(temp_lang_model)
 
     return language_models
 
@@ -75,21 +111,6 @@ def write_to_file(output_filename, output_list):
 
         for output in output_list:
             tsv_writer.writerow([output[0], output[1], output[2], output[3]])
-
-
-def ngram_prob_interpolation(token_list, ngram, n_minus1_gram, lambda_value):
-    list_length = len(token_list)
-
-    sliced_list = token_list[0:list_length - 1]
-
-    numerator = ngram.count(tuple(token_list))
-
-    denominator = n_minus1_gram.count(tuple(sliced_list))
-
-    if denominator == 0 or numerator == 0:
-        return 0
-
-    return math.log2(lambda_value * numerator / denominator)
 
 
 def ngram_prob_laplace(token_list, ngram, n_minus1_gram, vocabulary):
@@ -128,46 +149,38 @@ def docprob_unigram(tokens_dev, tokens_train):
         logprob += math.log2(tokens_train.count(tokens_dev[i]) / len(tokens_train))
     return logprob
 
-def docprob_unigram_interpolation(tokens_dev, tokens_train, lambda_value):
-    logprob = 0
 
-    for i in range(0, len(tokens_dev)):
+def calculate_interpolation_probability(gram_list, tokens_dev, lambda_value_list, n):
+    ngram_dev = list(ngrams(tokens_dev, n))
 
-        if tokens_train.count(tokens_dev[i]) == 0:
-            tokens_dev[i] = "#"
+    total_log_prob = 0
+    for each_tuple in ngram_dev:
 
-        logprob += math.log2(lambda_value * tokens_train.count(tokens_dev[i]) / len(tokens_train))
-    return logprob
+        prob = 0
+        for i in range(1, n + 1):
 
-def docprob_interpolation(tokens_dev, tokens_train, n):
-    gram_list = [[]]  # setting first element to empty list so that we can put ith gram in index i
+            if i == n:
+                numerator = gram_list[1].count(tuple(each_tuple[n - 1]))
+                denominator = len(gram_list[1])
 
-    for i in range(1, n + 1):
-        igram = ngrams(tokens_train, i)
-        igram = list(igram)
+            else:
+                n_minus_i_plus_1_gram = gram_list[n - i + 1]
+                n_minus_i_gram = gram_list[n - i]
 
-        gram_list.append(igram)
+                numerator = n_minus_i_plus_1_gram.count(each_tuple[i - 1:n])
+                denominator = n_minus_i_gram.count(each_tuple[0:n - i])
 
-    lambda_value_list = get_lambda_values(n, gram_list)  # ith lambda is in index i and so on, lambda 1 in index 1
+            if denominator == 0:
+                prob += 0
+            else:
+                prob += lambda_value_list[i] * numerator / denominator
 
-    docprob = 0
-    for h in range(1, n + 1):
-        if h == 1:
-            docprob += docprob_unigram_interpolation(tokens_dev, tokens_train, lambda_value_list[h])
-
+        if prob == 0:
+            total_log_prob += 0
         else:
-            logprob = 0
-            for i in range(n - 1, len(tokens_dev)):
-                token_list = []
+            total_log_prob += math.log2(prob)
 
-                for a in range(i - n + 1, i + 1):
-                    token_list.append(tokens_dev[a])
-
-                logprob += ngram_prob_interpolation(token_list, gram_list[h], gram_list[h - 1], lambda_value_list[h])
-
-            docprob += logprob
-
-    return docprob
+    return total_log_prob
 
 
 # returns True if two filenames excluding extension are same
@@ -302,7 +315,7 @@ def laplace_model(n, language_models, tokens_dev, filename_dev):
     return output_line
 
 
-def interpolation_model(n, language_models, tokens_dev, filename_dev):
+def interpolation_model(language_models, tokens_dev, filename_dev, n):
     min_perplexity = sys.maxsize
 
     best_guess_train_file = None
@@ -310,9 +323,11 @@ def interpolation_model(n, language_models, tokens_dev, filename_dev):
     for language_model in language_models:
 
         if language_model.n_value == n:
-            logprob = docprob_interpolation(tokens_dev, language_model.tokens_train, n)
 
-            perplexity = 2 ** -(logprob / len(tokens_dev))
+            log_docprob = calculate_interpolation_probability(language_model.gram_list, tokens_dev,
+                                                              language_model.lambda_value_list, n)
+
+            perplexity = 2 ** -(log_docprob / len(tokens_dev))
 
             if perplexity < min_perplexity:
                 min_perplexity = perplexity
@@ -349,21 +364,33 @@ def main():
 
     path_dev = args.dev_path
 
-    language_models = training_language_models(path_train)
+    value_of_n = 7
+
+    if args.laplace:
+        language_models = training_language_models(path_train)
+        output_filename = "results_dev_laplace.txt"
+
+    elif args.interpolation:
+        language_models = training_interpolation_language_models(path_train, value_of_n)
+        output_filename = "results_dev_interpolation.txt"
+
+    else:
+        language_models = training_language_models(path_train)
+        output_filename = "results_dev_unsmoothed.txt"
 
     output_list = []
 
     perp = 0
     count = 0
 
-    for filename_dev in glob.glob(os.path.join(path_dev, "*.dev")):
+    for filename_dev in glob.glob(os.path.join(path_dev, "*")):
 
         f_dev = open(filename_dev, "r")
         contents_dev = f_dev.read()
         tokens_dev = list(contents_dev)
 
         if args.laplace:
-            output_line = laplace_model(7, language_models, tokens_dev, filename_dev)
+            output_line = laplace_model(value_of_n, language_models, tokens_dev, filename_dev)
 
             """if(compare_file_names_ignoring_extension(output_line[0], output_line[1])):
 
@@ -372,28 +399,23 @@ def main():
             	perp += output_line[2]"""
 
         elif args.interpolation:
-            output_line = interpolation_model(3, language_models, tokens_dev, filename_dev)
+            output_line = interpolation_model(language_models, tokens_dev, filename_dev, value_of_n)
+            print(output_line[0], output_line[1])
+            if compare_file_names_ignoring_extension(output_line[0], output_line[1]):
+                count += 1
+
+                perp += output_line[2]
 
         else:
             output_line = unsmoothed_model(1, language_models, tokens_dev, filename_dev)
 
         output_list.append(output_line)
 
-
-    if args.laplace:
-        output_filename = "results_dev_laplace.txt"
-
-    elif args.interpolation:
-        output_filename = "results_dev_interpolation.txt"
-
-    else:
-        output_filename = "results_dev_unsmoothed.txt"
-
     write_to_file(output_filename, output_list)
 
-    # print(count)
+    print(count)
 
-    # print(perp / count)
+    print(perp / count)
 
 
 if __name__ == "__main__":
