@@ -106,11 +106,22 @@ def training_interpolation_language_models(path_train, n):
 
 
 def write_to_file(output_filename, output_list):
+
+    for output in output_list:
+
+            output[0] = output[0].rsplit('/',1)[1]
+
+            output[1] = output[1].rsplit('/',1)[1]
+
+
     with open(output_filename, 'wt') as out_file:
         tsv_writer = csv.writer(out_file, delimiter='\t')
 
         for output in output_list:
-            tsv_writer.writerow([output[0], output[1], output[2], output[3]])
+
+            
+
+            tsv_writer.writerow([output[0],output[1], output[2], output[3]])
 
 
 def ngram_prob_laplace(token_list, ngram, n_minus1_gram, vocabulary):
@@ -368,21 +379,19 @@ def main():
     if args.laplace:
         value_of_n = 3
         language_models = training_language_models(path_train)
-        output_filename = "results_dev_laplace.txt"
+        output_filename = "results_test_laplace.txt"
 
     elif args.interpolation:
         value_of_n = 6
         language_models = training_interpolation_language_models(path_train, value_of_n)
-        output_filename = "results_dev_interpolation.txt"
+        output_filename = "results_test_interpolation.txt"
 
     else:
         language_models = training_language_models(path_train)
-        output_filename = "results_dev_unsmoothed.txt"
+        output_filename = "results_test_unsmoothed.txt"
 
     output_list = []
 
-    # perp = 0
-    # count = 0
 
     for filename_test in sorted(glob.glob(os.path.join(path_test, "*"))):
 
@@ -393,19 +402,10 @@ def main():
         if args.laplace:
             output_line = laplace_model(value_of_n, language_models, tokens_test, filename_test)
 
-            """if(compare_file_names_ignoring_extension(output_line[0], output_line[1])):
-
-            	count += 1 ;
-
-            	perp += output_line[2]"""
 
         elif args.interpolation:
             output_line = interpolation_model(language_models, tokens_test, filename_test, value_of_n)
-            # print(output_line[0], output_line[1])
-            # if compare_file_names_ignoring_extension(output_line[0], output_line[1]):
-            #     count += 1
-            #
-            #     perp += output_line[2]
+            
 
         else:
             output_line = unsmoothed_model(1, language_models, tokens_test, filename_test)
@@ -414,9 +414,7 @@ def main():
 
     write_to_file(output_filename, output_list)
 
-    # print(count)
-    #
-    # print(perp / count)
+  
 
 
 if __name__ == "__main__":
